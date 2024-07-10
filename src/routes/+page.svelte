@@ -91,10 +91,29 @@
 	}
 
 	function handlePrint() {
-		const printWindow = window.open('', '_blank');
+		const dataUrl = canvas.toDataURL('image/png');
+		const windowContent = `
+			<html>
+			<head>
+				<style>
+					body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+					img { max-width: 100%; max-height: 100%; object-fit: contain; }
+				</style>
+			</head>
+			<body>
+				<img src="${dataUrl}" onload="setTimeout(function() { window.print(); window.close(); }, 200)">
+			</body>
+			</html>
+		`;
+
+		const printWindow = window.open('', '', 'width=600,height=600');
 		if (printWindow) {
-			printWindow.document.write(
-				'<img src="' + canvas.toDataURL() + '" onload="window.print();window.close()" />'
+			printWindow.document.open();
+			printWindow.document.write(windowContent);
+			printWindow.document.close();
+		} else {
+			alert(
+				'ポップアップがブロックされています。印刷するには、このサイトのポップアップを許可してください。'
 			);
 		}
 	}
