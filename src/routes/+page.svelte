@@ -96,12 +96,36 @@
 			<html>
 			<head>
 				<style>
-					body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-					img { max-width: 100%; max-height: 100%; object-fit: contain; }
+					@page {
+						size: 89mm 127mm;
+						margin: 0;
+					}
+					body {
+						margin: 0;
+						padding: 0;
+						width: 89mm;
+						height: 127mm;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+					}
+					.image-container {
+						width: 48mm;
+						height: 48mm;
+						overflow: hidden;
+						border-radius: 50%;
+					}
+					img {
+						width: 100%;
+						height: 100%;
+						object-fit: cover;
+					}
 				</style>
 			</head>
 			<body>
-				<img src="${dataUrl}" onload="setTimeout(function() { window.print(); window.close(); }, 200)">
+				<div class="image-container">
+					<img src="${dataUrl}" onload="setTimeout(function() { window.print(); window.close(); }, 200)">
+				</div>
 			</body>
 			</html>
 		`;
