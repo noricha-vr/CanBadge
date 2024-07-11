@@ -122,74 +122,97 @@
 </script>
 
 <div class="image-editor">
-	<div class="control-panel">
-		<div class="control-item">
-			<label for="file-upload" class="file-upload-label">画像をアップロード</label>
-			<input id="file-upload" type="file" on:change={handleFileUpload} accept="image/*" />
+	{#if !imageUrl}
+		<div class="bg-white p-3 w-full pt-10">
+			<div class="control-item text-center w-2/3 mx-auto">
+				<div class="mb-3">印刷したい画像をアップロードしてください</div>
+				<label for="file-upload" class="file-upload-label">画像をアップロード</label>
+				<input id="file-upload" type="file" on:change={handleFileUpload} accept="image/*" />
+			</div>
 		</div>
-		<div class="control-item">
-			<label>
-				拡大縮小:
-				<input
-					type="range"
-					min="0.1"
-					max="2"
-					step="0.1"
-					bind:value={scale}
-					on:input={handleScale}
+	{/if}
+
+	{#if !printRequestStatus}
+		<div class="canvas-container bg-white p-3">
+			<canvas bind:this={canvas}></canvas>
+		</div>
+		<div class="control-panel">
+			<div class="control-item">
+				<label>
+					拡大縮小:
+					<input
+						type="range"
+						min="0.1"
+						max="2"
+						step="0.1"
+						bind:value={scale}
+						on:input={handleScale}
+					/>
+				</label>
+			</div>
+			<div class="control-item">
+				<label>
+					回転:
+					<input
+						type="range"
+						min="0"
+						max="360"
+						step="1"
+						bind:value={rotation}
+						on:input={handleRotation}
+					/>
+				</label>
+			</div>
+			<div class="control-item">
+				<label>
+					左右:
+					<input
+						type="range"
+						min="-100"
+						max="100"
+						step="1"
+						bind:value={offsetX}
+						on:input={handleOffsetX}
+					/>
+				</label>
+			</div>
+			<div class="control-item">
+				<label>
+					上下:
+					<input
+						type="range"
+						min="-100"
+						max="100"
+						step="1"
+						bind:value={offsetY}
+						on:input={handleOffsetY}
+					/>
+				</label>
+			</div>
+			<button on:click={handlePrint} class="print-button">印刷</button>
+		</div>
+	{/if}
+
+	{#if printRequestStatus}
+		<div class="bg-white rounded-lg shadow-md p-6 max-w-sm mx-auto mt-8">
+			<div class="text-4xl mb-4 text-center">🎉</div>
+			<div class="text-center">
+				<h3 class="text-xl font-bold text-gray-800 mb-2">印刷リクエストを送信しました</h3>
+				<p class="text-gray-600">スタッフにスマホの画面をお見せください</p>
+				<p class="text-gray-800 mt-4">
+					リクエストID: {printRequestStatus.split(':')[1].trim()}
+				</p>
+			</div>
+			<div class="mt-4">
+				<img
+					src={canvas.toDataURL('image/png')}
+					alt="印刷画像"
+					class="mx-auto rounded-full"
+					style="width: 200px; height: 200px; object-fit: cover;"
 				/>
-			</label>
+			</div>
 		</div>
-		<div class="control-item">
-			<label>
-				回転:
-				<input
-					type="range"
-					min="0"
-					max="360"
-					step="1"
-					bind:value={rotation}
-					on:input={handleRotation}
-				/>
-			</label>
-		</div>
-		<div class="control-item">
-			<label>
-				左右:
-				<input
-					type="range"
-					min="-100"
-					max="100"
-					step="1"
-					bind:value={offsetX}
-					on:input={handleOffsetX}
-				/>
-			</label>
-		</div>
-		<div class="control-item">
-			<label>
-				上下:
-				<input
-					type="range"
-					min="-100"
-					max="100"
-					step="1"
-					bind:value={offsetY}
-					on:input={handleOffsetY}
-				/>
-			</label>
-		</div>
-		{#if imageUrl}
-			{#if printRequestStatus}
-				<div class="status-message">{printRequestStatus}</div>
-			{:else}
-				<button on:click={handlePrint} class="print-button">印刷</button>
-			{/if}
-		{/if}
-	</div>
-	<div class="canvas-container">
-		<canvas bind:this={canvas}></canvas>
-	</div>
+	{/if}
 </div>
 
 <style>
