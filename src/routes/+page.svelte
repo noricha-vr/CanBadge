@@ -8,7 +8,31 @@
 	let offsetY = 0;
 	let canvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D | null;
+	let printRequestStatus = '';
 
+	async function handlePrint() {
+		const dataUrl = canvas.toDataURL('image/png');
+
+		try {
+			const response = await fetch('/api/print-request', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ imageData: dataUrl })
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				printRequestStatus = `印刷リクエストを送信しました。リクエストID: ${result.id}`;
+			} else {
+				printRequestStatus = '印刷リクエストの送信に失敗しました。';
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			printRequestStatus = '印刷リクエストの送信中にエラーが発生しました。';
+		}
+	}
 	function handleFileUpload(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
@@ -90,58 +114,6 @@
 		img.src = imageUrl;
 	}
 
-	function handlePrint() {
-		const dataUrl = canvas.toDataURL('image/png');
-		const windowContent = `
-			<html>
-			<head>
-				<style>
-					@page {
-						size: 89mm 127mm;
-						margin: 0;
-					}
-					body {
-						margin: 0;
-						padding: 0;
-						width: 89mm;
-						height: 127mm;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}
-					.image-container {
-						width: 48mm;
-						height: 48mm;
-						overflow: hidden;
-						border-radius: 50%;
-					}
-					img {
-						width: 100%;
-						height: 100%;
-						object-fit: cover;
-					}
-				</style>
-			</head>
-			<body>
-				<div class="image-container">
-					<img src="${dataUrl}" onload="setTimeout(function() { window.print(); window.close(); }, 200)">
-				</div>
-			</body>
-			</html>
-		`;
-
-		const printWindow = window.open('', '', 'width=600,height=600');
-		if (printWindow) {
-			printWindow.document.open();
-			printWindow.document.write(windowContent);
-			printWindow.document.close();
-		} else {
-			alert(
-				'ポップアップがブロックされています。印刷するには、このサイトのポップアップを許可してください。'
-			);
-		}
-	}
-
 	onMount(() => {
 		ctx = canvas.getContext('2d');
 		canvas.width = 500;
@@ -207,7 +179,13 @@
 				/>
 			</label>
 		</div>
-		<button on:click={handlePrint} class="print-button">印刷</button>
+		{#if imageUrl}
+			{#if printRequestStatus}
+				<div class="status-message">{printRequestStatus}</div>
+			{:else}
+				<button on:click={handlePrint} class="print-button">印刷</button>
+			{/if}
+		{/if}
 	</div>
 	<div class="canvas-container">
 		<canvas bind:this={canvas}></canvas>
