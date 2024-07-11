@@ -9,27 +9,83 @@
 	}
 
 	async function approvePrintRequest(id: string) {
-		const response = await fetch('/api/print-request', {
+		const response = await fetch(`/api/print-request/${id}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ id })
+			body: JSON.stringify({ status: 'approved' })
 		});
 
 		if (response.ok) {
+			const printData = await response.json();
+			openPrintWindow(printData.imageData);
 			await fetchPrintRequests();
 		} else {
 			console.error('Failed to approve print request');
 		}
 	}
 
+	function openPrintWindow(imageData: string) {
+		const printWindow = window.open('', '_blank');
+		if (printWindow) {
+			printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Image</title>
+                    <style>
+                        @page {
+                            size: 89mm 127mm;
+                            margin: 0;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            width: 89mm;
+                            height: 127mm;
+                        }
+                        .image-container {
+                            width: 48mm;
+                            height: 48mm;
+                            border-radius: 50%;
+                            overflow: hidden;
+                        }
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="image-container">
+                        <img src="${imageData}" alt="Print Image">
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() {
+                                window.close();
+                            };
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+			printWindow.document.close();
+		}
+	}
+
 	onMount(fetchPrintRequests);
 </script>
 
-<h1 class="h2 mb-3">印刷リクエスト管理</h1>
+<h1>印刷リクエスト管理</h1>
 
-<table class="table">
+<table>
 	<thead>
 		<tr>
 			<th>ID</th>
@@ -43,17 +99,16 @@
 			<tr>
 				<td>{request.id}</td>
 				<td>{request.status}</td>
-				<td class="w-32 h-32">
-					<img src={request.imageData} alt="Print Preview" class="w-full h-full object-cover" />
+				<td>
+					<img
+						src={request.imageData}
+						alt="Print Preview"
+						style="width: 100px; height: 100px; object-fit: cover;"
+					/>
 				</td>
 				<td>
 					{#if request.status === 'pending'}
-						<button
-							class="btn btn-md variant-filled-primary"
-							on:click={() => approvePrintRequest(request.id)}
-						>
-							承認して印刷
-						</button>
+						<button on:click={() => approvePrintRequest(request.id)}> 承認して印刷 </button>
 					{/if}
 				</td>
 			</tr>
