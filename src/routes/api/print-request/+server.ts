@@ -5,7 +5,7 @@ import type { PrintRequest } from '$lib/db';
 
 export const POST: RequestHandler = async ({ request }) => {
     const data = await request.json();
-    const id = Date.now().toString();
+    const id = (Date.now() % 1000).toString().padStart(3, '0');
     const newRequest: PrintRequest = { id, ...data, status: 'pending' };
     addPrintRequest(newRequest);
     return json({ id, message: 'Print request received' });
