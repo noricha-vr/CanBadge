@@ -27,13 +27,14 @@
 	onMount(fetchPrintRequests);
 </script>
 
-<h1>印刷リクエスト管理</h1>
+<h1 class="h2 mb-3">印刷リクエスト管理</h1>
 
-<table>
+<table class="table">
 	<thead>
 		<tr>
 			<th>ID</th>
 			<th>ステータス</th>
+			<th>プレビュー</th>
 			<th>アクション</th>
 		</tr>
 	</thead>
@@ -42,9 +43,17 @@
 			<tr>
 				<td>{request.id}</td>
 				<td>{request.status}</td>
+				<td class="w-32 h-32">
+					<img src={request.imageData} alt="Print Preview" class="w-full h-full object-cover" />
+				</td>
 				<td>
 					{#if request.status === 'pending'}
-						<button on:click={() => approvePrintRequest(request.id)}> 承認して印刷 </button>
+						<button
+							class="btn btn-md variant-filled-primary"
+							on:click={() => approvePrintRequest(request.id)}
+						>
+							承認して印刷
+						</button>
 					{/if}
 				</td>
 			</tr>
