@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	let imageUrl = '';
-	let scale = 1;
+	let scale = 100; // Changed from 1 to 100 for percentage-based scaling
 	let rotation = 0;
 	let offsetX = 0;
 	let offsetY = 0;
@@ -32,7 +32,7 @@
 			}
 		} catch (error) {
 			console.error('Error:', error);
-			printRequestStatus = '印刷リクエストの送信中にエラーが発生しました。';
+			printRequestStatus = '印刷リクエストの送信中にエラー発生しました。';
 		}
 	}
 
@@ -41,7 +41,7 @@
 		const file = target.files?.[0];
 		if (file) {
 			imageUrl = URL.createObjectURL(file);
-			// 画像がロードされた後に描画を行う
+			// 画像が��ードされた後に描画を行う
 			const img = new Image();
 			img.onload = () => {
 				resetControls();
@@ -52,7 +52,7 @@
 	}
 
 	function resetControls() {
-		scale = 1;
+		scale = 100; // Changed from 1 to 100 for percentage-based scaling
 		rotation = 0;
 		offsetX = 0;
 		offsetY = 0;
@@ -91,17 +91,20 @@
 			ctx!.clearRect(0, 0, canvas.width, canvas.height);
 			previewCtx!.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
 
+			// Calculate fine-grained scale
+			const fineScale = scale / 100; // Convert percentage to scale factor
+
 			// Draw on main canvas
 			ctx!.save();
 			ctx!.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
 			ctx!.rotate((rotation * Math.PI) / 180);
-			ctx!.scale(scale, scale);
+			ctx!.scale(fineScale, fineScale);
 
 			// Draw on preview canvas
 			previewCtx!.save();
 			previewCtx!.translate(previewCanvas.width / 2 + offsetX, previewCanvas.height / 2 + offsetY);
 			previewCtx!.rotate((rotation * Math.PI) / 180);
-			previewCtx!.scale(scale, scale);
+			previewCtx!.scale(fineScale, fineScale);
 
 			// 画像のアスペクト比を維持しつつ、キャンバスに合わせて拡大縮小
 			const aspectRatio = img.width / img.height;
@@ -188,9 +191,9 @@
 					拡大縮小:
 					<input
 						type="range"
-						min="0.1"
-						max="2"
-						step="0.1"
+						min="50"
+						max="150"
+						step="1"
 						bind:value={scale}
 						on:input={handleScale}
 					/>
