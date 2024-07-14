@@ -187,6 +187,14 @@
 		</div>
 		<div class="control-panel">
 			<div class="control-item">
+				<div>
+					黒い線の<strong>内側</strong>が缶バッチの<strong>正面</strong>から見えます
+				</div>
+				<div>
+					黒い線の<strong>外側</strong>は缶バッチの<strong>側面</strong>から見えます
+				</div>
+			</div>
+			<div class="control-item">
 				<label>
 					拡大縮小:
 					<input
