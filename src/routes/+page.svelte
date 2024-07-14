@@ -110,6 +110,17 @@
 			ctx!.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
 			ctx!.fill();
 			ctx!.globalCompositeOperation = 'source-over';
+
+			// Draw thin circular line 4mm inside
+			const mmToPx = (mm: number) => (mm / 25.4) * 96; // Convert mm to pixels (assuming 96 DPI)
+			const lineWidth = mmToPx(14); // Changed from 2mm to 4mm
+			const radius = canvas.width / 2 - lineWidth / 2;
+
+			ctx!.beginPath();
+			ctx!.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+			ctx!.lineWidth = 1; // Thin line
+			ctx!.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // Light color
+			ctx!.stroke();
 		};
 		img.src = imageUrl;
 	}
