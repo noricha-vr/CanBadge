@@ -7,11 +7,13 @@
 	let offsetX = 0;
 	let offsetY = 0;
 	let canvas: HTMLCanvasElement;
+	let previewCanvas: HTMLCanvasElement;
 	let ctx: CanvasRenderingContext2D | null;
+	let previewCtx: CanvasRenderingContext2D | null;
 	let printRequestStatus = '';
 
 	async function handlePrint() {
-		const dataUrl = canvas.toDataURL('image/png');
+		const dataUrl = previewCanvas.toDataURL('image/png');
 
 		try {
 			const response = await fetch('/api/print-request', {
@@ -33,6 +35,7 @@
 			printRequestStatus = '印刷リクエストの送信中にエラーが発生しました。';
 		}
 	}
+
 	function handleFileUpload(event: Event) {
 		const target = event.target as HTMLInputElement;
 		const file = target.files?.[0];
@@ -80,15 +83,25 @@
 	}
 
 	function drawImage() {
-		if (!ctx || !imageUrl) return;
+		if (!ctx || !previewCtx || !imageUrl) return;
 
 		const img = new Image();
 		img.onload = () => {
+			// Clear both canvases
 			ctx!.clearRect(0, 0, canvas.width, canvas.height);
+			previewCtx!.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+			// Draw on main canvas
 			ctx!.save();
 			ctx!.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
 			ctx!.rotate((rotation * Math.PI) / 180);
 			ctx!.scale(scale, scale);
+
+			// Draw on preview canvas
+			previewCtx!.save();
+			previewCtx!.translate(previewCanvas.width / 2 + offsetX, previewCanvas.height / 2 + offsetY);
+			previewCtx!.rotate((rotation * Math.PI) / 180);
+			previewCtx!.scale(scale, scale);
 
 			// 画像のアスペクト比を維持しつつ、キャンバスに合わせて拡大縮小
 			const aspectRatio = img.width / img.height;
@@ -101,34 +114,48 @@
 				drawHeight = drawWidth / aspectRatio;
 			}
 
+			// Draw image on both canvases
 			ctx!.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+			previewCtx!.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+
+			// Restore transformations
 			ctx!.restore();
+			previewCtx!.restore();
 
-			// Draw circular frame
-			ctx!.globalCompositeOperation = 'destination-in';
-			ctx!.beginPath();
-			ctx!.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
-			ctx!.fill();
-			ctx!.globalCompositeOperation = 'source-over';
+			// Draw circular frame on preview canvas only
+			previewCtx!.globalCompositeOperation = 'destination-in';
+			previewCtx!.beginPath();
+			previewCtx!.arc(
+				previewCanvas.width / 2,
+				previewCanvas.height / 2,
+				previewCanvas.width / 2,
+				0,
+				Math.PI * 2
+			);
+			previewCtx!.fill();
+			previewCtx!.globalCompositeOperation = 'source-over';
 
-			// Draw thin circular line 4mm inside
+			// Draw thin circular line 4mm inside on preview canvas only
 			const mmToPx = (mm: number) => (mm / 25.4) * 96; // Convert mm to pixels (assuming 96 DPI)
-			const lineWidth = mmToPx(14); // Changed from 2mm to 4mm
-			const radius = canvas.width / 2 - lineWidth / 2;
+			const lineWidth = mmToPx(14); // 4mm
+			const radius = previewCanvas.width / 2 - lineWidth / 2;
 
-			ctx!.beginPath();
-			ctx!.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
-			ctx!.lineWidth = 1; // Thin line
-			ctx!.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // Light color
-			ctx!.stroke();
+			previewCtx!.beginPath();
+			previewCtx!.arc(previewCanvas.width / 2, previewCanvas.height / 2, radius, 0, Math.PI * 2);
+			previewCtx!.lineWidth = 1; // Thin line
+			previewCtx!.strokeStyle = 'rgba(0, 0, 0, 0.5)'; // Light color
+			previewCtx!.stroke();
 		};
 		img.src = imageUrl;
 	}
 
 	onMount(() => {
 		ctx = canvas.getContext('2d');
+		previewCtx = previewCanvas.getContext('2d');
 		canvas.width = 500;
 		canvas.height = 500;
+		previewCanvas.width = 500;
+		previewCanvas.height = 500;
 	});
 </script>
 
@@ -145,7 +172,8 @@
 
 	{#if !printRequestStatus}
 		<div class="canvas-container bg-white p-3">
-			<canvas bind:this={canvas}></canvas>
+			<canvas bind:this={canvas} style="display: none;"></canvas>
+			<canvas bind:this={previewCanvas}></canvas>
 		</div>
 		<div class="control-panel">
 			<div class="control-item">
