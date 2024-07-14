@@ -13,7 +13,7 @@
 	let printRequestStatus = '';
 
 	async function handlePrint() {
-		const dataUrl = previewCanvas.toDataURL('image/png');
+		const dataUrl = canvas.toDataURL('image/png');
 
 		try {
 			const response = await fetch('/api/print-request', {
@@ -122,6 +122,13 @@
 			ctx!.restore();
 			previewCtx!.restore();
 
+			// Draw circular frame on main canvas
+			ctx!.globalCompositeOperation = 'destination-in';
+			ctx!.beginPath();
+			ctx!.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, 0, Math.PI * 2);
+			ctx!.fill();
+			ctx!.globalCompositeOperation = 'source-over';
+
 			// Draw circular frame on preview canvas only
 			previewCtx!.globalCompositeOperation = 'destination-in';
 			previewCtx!.beginPath();
@@ -137,7 +144,7 @@
 
 			// Draw thin circular line 4mm inside on preview canvas only
 			const mmToPx = (mm: number) => (mm / 25.4) * 96; // Convert mm to pixels (assuming 96 DPI)
-			const lineWidth = mmToPx(14); // 4mm
+			const lineWidth = mmToPx(14); // 14mm
 			const radius = previewCanvas.width / 2 - lineWidth / 2;
 
 			previewCtx!.beginPath();
